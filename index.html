@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Sivasankaran Ravichandran — Explore My World</title>
+  <meta name="description" content="Explore an interactive 3D space station and discover Sivasankaran Ravichandran's background, skills, projects, experience, and contact details as interactive terminals." />
+  <meta name="theme-color" content="#0b0f19" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./js/vendor/three/build/three.module.js",
+        "three/addons/": "./js/vendor/three/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <canvas id="worldCanvas"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <!-- ===== Intro / start screen ===== -->
+  <div class="intro" id="intro">
+    <div class="intro-card">
+      <span class="eyebrow">Interactive Portfolio</span>
+      <h1>Sivasankaran Ravichandran</h1>
+      <p class="tagline">Explore my station. Find four terminals. Each one is a piece of who I am.</p>
+      <div class="intro-controls">
+        <div class="control-row"><span class="key">W A S D</span><span>Move</span></div>
+        <div class="control-row"><span class="key">Mouse</span><span>Look around</span></div>
+        <div class="control-row"><span class="key">Shift</span><span>Run</span></div>
+        <div class="control-row"><span class="key">Space</span><span>Jump</span></div>
+        <div class="control-row"><span class="key">E</span><span>Interact</span></div>
+        <div class="control-row"><span class="key">G</span><span>Toggle mouse</span></div>
+      </div>
+      <p class="intro-note" id="introNote">On touch devices: drag the left stick to move, drag the right side to look, tap the button to interact.</p>
+      <button class="btn-enter" id="enterBtn" type="button">Board The Station</button>
+      <p class="intro-fallback">
+        Prefer a normal page? <a href="fallback.html">View the plain portfolio instead</a>.
+      </p>
+    </div>
+  </div>
+
+  <!-- ===== HUD ===== -->
+  <div class="hud" id="hud" hidden>
+    <div class="hud-top">
+      <span class="hud-brand">Siva<span>.</span></span>
+      <span class="hud-milestones" id="hudMilestoneCount">0 / 4 Milestones</span>
+      <div class="hud-top-actions">
+        <button class="hud-btn" id="muteBtn" type="button" aria-label="Toggle sound" aria-pressed="false">&#128267;</button>
+        <button class="hud-btn" id="mouseToggleBtn" type="button" aria-label="Toggle mouse cursor" aria-pressed="true" hidden>&#128274;</button>
+      </div>
+    </div>
+
+    <div class="crosshair" id="crosshair" aria-hidden="true"></div>
+
+    <div class="prompt" id="prompt" hidden>
+      <span id="promptText">[ E ] View About Me</span>
+    </div>
+
+    <div class="milestone-toast" id="milestoneToast" hidden></div>
+
+    <div class="orb-badge" id="orbBadge">
+      <span class="orb-badge-icon">🔮</span>
+      <span id="orbBadgeText">0 / 8 Orbs</span>
+    </div>
+
+    <div class="victory-badge" id="victoryBadge" hidden>
+      <span class="victory-badge-icon">🏆</span>
+      <span class="victory-badge-text">All Milestones Complete</span>
+    </div>
+
+    <!-- Touch controls (shown only on touch devices via JS) -->
+    <div class="touch-controls" id="touchControls" hidden>
+      <div class="touch-stick" id="touchStick"><div class="touch-stick-knob" id="touchStickKnob"></div></div>
+      <button class="touch-interact" id="touchInteractBtn" type="button" hidden>Interact</button>
+      <div class="touch-look" id="touchLook" aria-hidden="true"></div>
+    </div>
+
+  </div>
+
+  <!-- ===== Content panel ===== -->
+  <div class="panel" id="panel" hidden>
+    <div class="panel-card">
+      <div class="panel-header">
+        <span class="panel-title" id="panelTitle">Station</span>
+        <button class="panel-close" id="panelClose" type="button" aria-label="Close">&times;</button>
+      </div>
+      <div class="panel-body" id="panelBody"></div>
+    </div>
+  </div>
+
+  <!-- ===== Victory overlay (plays once) ===== -->
+  <div class="victory-overlay" id="victoryOverlay" hidden>
+    <div class="victory-content">
+      <div class="victory-trophy">🏆</div>
+      <h2>All Milestones Discovered</h2>
+      <p>You've explored my full profile — background, projects, experience, and how to reach me. Thanks for walking through my world.</p>
+      <button class="btn-enter" id="victoryContinueBtn" type="button">Continue Exploring</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
