@@ -144,7 +144,7 @@ export const MILESTONES = [
         <p>Whether you have a question or just want to connect, feel free to reach out — I'll get back to you as soon as I can.</p>
         <div class="contact-line"><span>✉</span> <div><strong>Email</strong><br />sivasankaran.s1231811@outlook.com</div></div>
         <div class="contact-line"><span>📍</span> <div><strong>Location</strong><br />Greater Bengaluru Area, India</div></div>
-        <a class="btn-enter" href="https://www.linkedin.com/in/sivasankaranravichandran-b2a31b16b" target="_blank" rel="noopener">Connect on LinkedIn</a>
+        <a class="btn-enter" href="https://www.linkedin.com/in/sivasankaran-ravichandran-b2a31b16b" target="_blank" rel="noopener">Connect on LinkedIn</a>
       `;
     },
   },
