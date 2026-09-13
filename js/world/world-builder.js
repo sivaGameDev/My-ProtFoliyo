@@ -3,6 +3,7 @@ import { createGlassMaterial, createMetalMaterial, createEmissiveTrimMaterial, c
 import { createTerminal } from "./terminals.js";
 import { createWaypointMarker } from "./markers.js";
 import { buildCollectibles } from "./collectibles.js";
+import { createScoreboard } from "./multiplayer/scoreboard.js";
 import { MILESTONES } from "./content-data.js";
 
 const PLATFORM_RADIUS = 16;
@@ -15,6 +16,23 @@ const TERMINAL_POSITIONS = [
   { x: -10, z: 6 }, // resume — west, south
   { x: 6, z: 10 }, // contact — south, slightly east
 ];
+
+// The arcade sits between resume and contact — a bonus attraction, not part
+// of the core 4-milestone set, so it never touches the victory count. It's
+// pushed out near the platform's rim, right underneath where the live
+// scoreboard hangs in open space, so the call-button and the board it
+// controls read as one spot.
+const ARCADE_POSITION = { x: -3.4, z: 13.6 };
+const ARCADE_COLOR = 0xf472b6;
+
+// The live scoreboard hangs past the platform's outer rim, out in open
+// space, along the same direction as the arcade button — the last thing
+// past the outermost ring, visible from across the station.
+function scoreboardPosition() {
+  const angle = Math.atan2(ARCADE_POSITION.z, ARCADE_POSITION.x);
+  const radius = PLATFORM_RADIUS + 4;
+  return { x: Math.cos(angle) * radius, y: 4, z: Math.sin(angle) * radius };
+}
 
 function buildPlatform(scene) {
   const deck = new THREE.Mesh(
@@ -57,25 +75,29 @@ function buildPlatform(scene) {
   return deck;
 }
 
+function buildLandingPad(group, pos, color) {
+  const pad = new THREE.Mesh(
+    new THREE.CircleGeometry(2.2, 40),
+    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.14, side: THREE.DoubleSide })
+  );
+  pad.rotation.x = -Math.PI / 2;
+  pad.position.set(pos.x, 0.015, pos.z);
+  group.add(pad);
+
+  const padRing = new THREE.Mesh(
+    new THREE.RingGeometry(2.1, 2.25, 48),
+    createEmissiveTrimMaterial({ color, intensity: 0.7 })
+  );
+  padRing.rotation.x = -Math.PI / 2;
+  padRing.position.set(pos.x, 0.02, pos.z);
+  group.add(padRing);
+}
+
 function buildLandingPads(group) {
   MILESTONES.forEach((data, i) => {
-    const pos = TERMINAL_POSITIONS[i];
-    const pad = new THREE.Mesh(
-      new THREE.CircleGeometry(2.2, 40),
-      new THREE.MeshBasicMaterial({ color: data.accentColor, transparent: true, opacity: 0.14, side: THREE.DoubleSide })
-    );
-    pad.rotation.x = -Math.PI / 2;
-    pad.position.set(pos.x, 0.015, pos.z);
-    group.add(pad);
-
-    const padRing = new THREE.Mesh(
-      new THREE.RingGeometry(2.1, 2.25, 48),
-      createEmissiveTrimMaterial({ color: data.accentColor, intensity: 0.7 })
-    );
-    padRing.rotation.x = -Math.PI / 2;
-    padRing.position.set(pos.x, 0.02, pos.z);
-    group.add(padRing);
+    buildLandingPad(group, TERMINAL_POSITIONS[i], data.accentColor);
   });
+  buildLandingPad(group, ARCADE_POSITION, ARCADE_COLOR);
 }
 
 function createStrip(from, to, { width = 0.6, color = 0x5eead4, y = 0.02 } = {}) {
@@ -109,6 +131,7 @@ function buildWalkways(group) {
   TERMINAL_POSITIONS.forEach((pos, i) => {
     group.add(createStrip(hub, pos, { color: MILESTONES[i].accentColor }));
   });
+  group.add(createStrip(hub, ARCADE_POSITION, { color: ARCADE_COLOR, width: 0.5 }));
 }
 
 // The plaza centerpiece — an emissive core with a translucent shell, a
@@ -173,6 +196,31 @@ function buildTerminals(group) {
   });
 
   return milestoneRuntime;
+}
+
+// A bonus attraction, not one of the 4 core milestones — visiting it never
+// affects the victory count.
+function buildArcade(group) {
+  const terminal = createTerminal("arcade");
+  terminal.group.position.set(ARCADE_POSITION.x, 0, ARCADE_POSITION.z);
+  group.add(terminal.group);
+
+  const marker = createWaypointMarker({ color: ARCADE_COLOR });
+  terminal.group.add(marker.sprite);
+
+  return {
+    id: "arcade",
+    label: "Multiplayer Arcade",
+    prompt: "Play Tic-Tac-Toe",
+    title: "Arcade Cabinet — Multiplayer Tic-Tac-Toe",
+    accentColor: ARCADE_COLOR,
+    position: new THREE.Vector3(ARCADE_POSITION.x, 0, ARCADE_POSITION.z),
+    radius: 3.4,
+    terminal,
+    marker,
+    discovered: false,
+    hovered: false,
+  };
 }
 
 // Crates, pylons, and drifting debris scattered along the walkways and
@@ -252,6 +300,7 @@ export function buildWorld(scene) {
   buildWalkways(group);
   const energyCore = buildEnergyCore(group);
   const milestones = buildTerminals(group);
+  const arcade = buildArcade(group);
   const propColliders = buildProps(group);
   const collectibles = buildCollectibles(group);
 
@@ -259,21 +308,25 @@ export function buildWorld(scene) {
   dust.position.y = 3;
   scene.add(dust);
 
+  scene.add(createScoreboard(scoreboardPosition()));
+
   scene.add(group);
 
   const terminalColliders = milestones.map((m) => ({ x: m.position.x, z: m.position.z, radius: 1.5 }));
+  const arcadeCollider = { x: arcade.position.x, z: arcade.position.z, radius: 1.2 };
   const coreCollider = { x: 0, z: 0, radius: 1.0 };
 
   return {
     group,
     milestones,
+    arcade,
     collectibles,
     dust,
     core: energyCore.core,
     coreMesh: energyCore.coreMesh,
     wire: energyCore.wire,
     particles: energyCore.particles,
-    colliders: [coreCollider, ...terminalColliders, ...propColliders],
+    colliders: [coreCollider, arcadeCollider, ...terminalColliders, ...propColliders],
     worldBounds: PLATFORM_RADIUS - 1.5,
   };
 }

@@ -40,11 +40,21 @@
         <div class="control-row"><span class="key">G</span><span>Toggle mouse</span></div>
       </div>
       <p class="intro-note" id="introNote">On touch devices: drag the left stick to move, drag the right side to look, tap the button to interact.</p>
+      <div class="intro-name-row">
+        <label for="playerNameInput" class="intro-name-label">Your name, for the arcade</label>
+        <input class="xo-code-input intro-name-input" id="playerNameInput" type="text" maxlength="16" placeholder="e.g. Alex" autocomplete="off" />
+      </div>
       <button class="btn-enter" id="enterBtn" type="button">Board The Station</button>
       <p class="intro-fallback">
         Prefer a normal page? <a href="fallback.html">View the plain portfolio instead</a>.
       </p>
     </div>
+  </div>
+
+  <!-- ===== Loading screen (between intro and the live station) ===== -->
+  <div class="loading-screen" id="loadingScreen" hidden>
+    <div class="loading-spinner" aria-hidden="true"></div>
+    <p class="loading-text" id="loadingText">Booting station systems…</p>
   </div>
 
   <!-- ===== HUD ===== -->
@@ -106,6 +116,7 @@
     </div>
   </div>
 
+  <script src="js/vendor/peerjs/peerjs.min.js"></script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

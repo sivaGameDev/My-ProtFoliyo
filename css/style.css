@@ -179,6 +179,62 @@ button {
   color: var(--accent);
 }
 
+.intro-name-row {
+  margin: 22px 0 18px;
+  text-align: left;
+}
+
+.intro-name-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.intro-name-input {
+  width: 100%;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* ---------- Loading screen ---------- */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: var(--bg);
+}
+
+.loading-spinner {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  animation: loadingSpin 0.9s linear infinite;
+}
+
+@keyframes loadingSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  letter-spacing: 0.03em;
+}
+
 /* ---------- HUD ---------- */
 .hud {
   position: fixed;
@@ -590,6 +646,156 @@ button {
 
 .panel-body .btn-enter {
   margin-top: 10px;
+}
+
+/* ---------- Arcade / Multiplayer Tic-Tac-Toe ---------- */
+.xo-menu p,
+.xo-waiting p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+.xo-join-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.xo-code-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.xo-join-row .btn-enter {
+  width: auto;
+  flex-shrink: 0;
+  padding: 12px 22px;
+}
+
+.xo-status {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--accent);
+  min-height: 1.2em;
+}
+
+.xo-status-error {
+  color: #f87171;
+}
+
+.xo-waiting {
+  text-align: center;
+}
+
+.xo-code {
+  font-family: var(--font-mono);
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.xo-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.xo-role {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.xo-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  max-width: 280px;
+  margin: 0 auto 16px;
+}
+
+.xo-cell {
+  aspect-ratio: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 2rem;
+  color: var(--text);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.xo-cell:not(:disabled):hover {
+  border-color: var(--accent);
+  cursor: pointer;
+}
+
+.xo-cell:disabled {
+  cursor: default;
+}
+
+.xo-cell-x {
+  color: var(--accent);
+}
+
+.xo-cell-o {
+  color: var(--accent-alt);
+}
+
+.xo-cell-fading {
+  opacity: 0.4;
+}
+
+.xo-cell-winning {
+  border-color: var(--accent);
+  animation: xoWinPulse 0.9s ease-in-out infinite;
+}
+
+@keyframes xoWinPulse {
+  0%, 100% {
+    box-shadow: 0 0 6px rgba(94, 234, 212, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(94, 234, 212, 0.75);
+  }
+}
+
+.xo-result {
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.xo-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.xo-actions .btn-enter {
+  margin-top: 0;
 }
 
 /* ---------- Victory overlay ---------- */

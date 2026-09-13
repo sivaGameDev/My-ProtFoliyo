@@ -10,7 +10,7 @@ export const MILESTONES = [
     accentColor: 0x5eead4,
     render() {
       return `
-        <p>I'm a Game Systems Engineer at Lens Medical Visualization, based in the Greater Bengaluru Area, where I design 3D/2D application systems using C#, JavaScript, and AI-assisted tooling.</p>
+        <p>I'm a Game Systems Engineer at Lens Medical Visualization, based in the Greater Bengaluru Area, where I design 3D/2D application systems using C#, JavaScript, and AI-assisted tooling. My process leans on video and visual reference to reverse-engineer structure quickly, then rebuild it as a leaner, workflow-specific system rather than a generic one — cutting build time and workload while still understanding every component well enough to engineer that smarter version myself. It's the same vibe-coding approach behind this site itself: directing AI coding agents through natural-language iteration to design and ship the whole experience.</p>
         <p>My background is in Information Technology, and I've spent it gravitating toward the intersection of interactive graphics and intelligent input — from building computer-vision tools that control an OS hands-free, to integrating OpenCV hand tracking into Unity 3D for touchless gaming.</p>
         <p>I like working close to the engine: PlayCanvas and Unity for building the experience, computer vision and AI tooling for making it respond to the real world.</p>
         <h4>A Few Things</h4>
@@ -28,7 +28,7 @@ export const MILESTONES = [
         </div>
         <h4>Skills — Game &amp; 3D/2D Development</h4>
         <div class="tag-row">
-          <span class="tag">PlayCanvas</span><span class="tag">Unity</span><span class="tag">C#</span><span class="tag">JavaScript</span>
+          <span class="tag">PlayCanvas</span><span class="tag">Unity</span><span class="tag">Blender</span><span class="tag">C#</span><span class="tag">JavaScript</span>
         </div>
         <h4>Skills — Computer Vision &amp; AI</h4>
         <div class="tag-row">
@@ -112,6 +112,12 @@ export const MILESTONES = [
           <h5>Game System Engineer</h5>
           <span class="org">Lens Medical Visualization · Bengaluru</span>
           <p>Working as a 3D/2D application system designer using C#, JavaScript, and AI tools to build interactive visualization systems.</p>
+        </div>
+        <div class="timeline-entry">
+          <span class="date">October 2024 — March 2025</span>
+          <h5>Associate Game Developer (Intern)</h5>
+          <span class="org">It's By Technologies</span>
+          <p>Built out game concepts in Unity from rough layout through implementation, used AI tooling to speed up bug-fixing and keep the code structure clean, and implemented core animation work.</p>
         </div>
         <h4>🎓 Education</h4>
         <div class="timeline-entry">

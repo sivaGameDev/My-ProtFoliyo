@@ -1,5 +1,6 @@
 import { MILESTONES } from "./content-data.js";
 import * as audio from "./audio.js";
+import { arcadeSession } from "./multiplayer/arcade-session.js";
 
 export function createHud({ controller, isTouch }) {
   const els = {
@@ -23,6 +24,9 @@ export function createHud({ controller, isTouch }) {
     victoryContinueBtn: document.getElementById("victoryContinueBtn"),
     orbBadge: document.getElementById("orbBadge"),
     orbBadgeText: document.getElementById("orbBadgeText"),
+    playerNameInput: document.getElementById("playerNameInput"),
+    loadingScreen: document.getElementById("loadingScreen"),
+    loadingText: document.getElementById("loadingText"),
   };
 
   function updateOrbBadge(count, total) {
@@ -58,10 +62,21 @@ export function createHud({ controller, isTouch }) {
     els.prompt.hidden = true;
   }
 
-  function openPanel(milestone) {
+  let activeUnmount = null;
+
+  function openPanel(entry) {
+    if (activeUnmount) {
+      activeUnmount();
+      activeUnmount = null;
+    }
     panelOpen = true;
-    els.panelTitle.textContent = milestone.title;
-    els.panelBody.innerHTML = milestone.render();
+    els.panelTitle.textContent = entry.title;
+    if (typeof entry.mount === "function") {
+      els.panelBody.innerHTML = "";
+      activeUnmount = entry.mount(els.panelBody) || null;
+    } else {
+      els.panelBody.innerHTML = entry.render();
+    }
     els.panel.hidden = false;
     requestAnimationFrame(() => els.panel.classList.add("is-open"));
     if (controller.locked) controller.exitLock();
@@ -72,6 +87,10 @@ export function createHud({ controller, isTouch }) {
   let mouseManuallyFreed = false;
 
   function closePanel() {
+    if (activeUnmount) {
+      activeUnmount();
+      activeUnmount = null;
+    }
     panelOpen = false;
     els.panel.classList.remove("is-open");
     setTimeout(() => (els.panel.hidden = true), 350);
@@ -161,9 +180,8 @@ export function createHud({ controller, isTouch }) {
 
   document.addEventListener("pointerlockchange", updateMouseToggleIcon);
 
-  function enterExperience() {
-    els.intro.classList.add("is-hidden");
-    setTimeout(() => (els.intro.hidden = true), 500);
+  function finishEntering() {
+    els.loadingScreen.hidden = true;
     els.hud.hidden = false;
     if (isTouch) {
       els.touchControls.hidden = false;
@@ -172,6 +190,23 @@ export function createHud({ controller, isTouch }) {
       mouseManuallyFreed = false;
       controller.requestLock();
     }
+  }
+
+  async function enterExperience() {
+    const name = (els.playerNameInput.value || "").trim();
+    els.intro.classList.add("is-hidden");
+    setTimeout(() => (els.intro.hidden = true), 500);
+    els.loadingScreen.hidden = false;
+    els.loadingText.textContent = "Booting station systems…";
+
+    await arcadeSession.connect({
+      name,
+      onStatus: (text) => {
+        els.loadingText.textContent = text;
+      },
+    });
+
+    finishEntering();
   }
 
   els.enterBtn.addEventListener("click", enterExperience);
@@ -191,6 +226,7 @@ export function createHud({ controller, isTouch }) {
     showToast,
     updateOrbBadge,
     onMilestoneDiscovered,
+    openPanel,
     touchEls: {
       stick: document.getElementById("touchStick"),
       stickKnob: document.getElementById("touchStickKnob"),

@@ -155,11 +155,40 @@ function buildContactTerminal() {
   return { group, interactive: [base, dish, ring], pulse: [trim] };
 }
 
+// A small vertical call-button pedestal standing at the platform's edge,
+// right where players can see the live scoreboard hanging out in space —
+// press the glowing button on top to open the game.
+function buildArcadeTerminal() {
+  const group = new THREE.Group();
+  const metal = createMetalMaterial({ color: 0x9a8ba6, roughness: 0.45 });
+  const trim = createEmissiveTrimMaterial({ color: 0xf472b6, intensity: 1.4 });
+
+  const post = new THREE.Mesh(new THREE.BoxGeometry(0.22, 1.1, 0.22), metal);
+  post.position.y = 0.55;
+  group.add(post);
+
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.06, 8), metal);
+  cap.position.y = 1.13;
+  group.add(cap);
+
+  const button = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.05, 16), trim);
+  button.position.y = 1.19;
+  group.add(button);
+
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.015, 8, 24), trim);
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = 1.16;
+  group.add(ring);
+
+  return { group, interactive: [post, cap, button], pulse: [trim] };
+}
+
 const BUILDERS = {
   about: buildAboutTerminal,
   projects: () => buildProjectsTerminal(5),
   resume: buildResumeTerminal,
   contact: buildContactTerminal,
+  arcade: buildArcadeTerminal,
 };
 
 export function createTerminal(id) {
