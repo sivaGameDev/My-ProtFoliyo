@@ -10,7 +10,6 @@ import { buildWorld } from "./world/world-builder.js";
 import { PlayerController } from "./world/player-controller.js";
 import { createHud } from "./world/hud.js";
 import { mountTicTacToe } from "./world/multiplayer/tictactoe.js";
-import { mountRacing } from "./world/multiplayer/racing.js";
 
 const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 
@@ -54,7 +53,6 @@ const shootingStars = new ShootingStarField(scene, { skyRadius: 120 });
 let nearestMilestone = null;
 let nearestOrb = null;
 let nearestArcade = null;
-let nearestRacing = null;
 hud.updateOrbBadge(worldData.collectibles.collectedCount, worldData.collectibles.total);
 
 const composer = new EffectComposer(renderer);
@@ -75,15 +73,6 @@ controller.onInteract = () => {
     hud.openPanel({
       title: worldData.arcade.title,
       mount: (container) => mountTicTacToe(container),
-    });
-    hud.playInteractSound();
-    return;
-  }
-
-  if (nearestRacing) {
-    hud.openPanel({
-      title: worldData.racing.title,
-      mount: (container) => mountRacing(container),
     });
     hud.playInteractSound();
     return;
@@ -160,16 +149,6 @@ function animate() {
     arcade.marker.update(time, dt, false);
   }
 
-  {
-    const racing = worldData.racing;
-    const dx = controller.object.position.x - racing.position.x;
-    const dz = controller.object.position.z - racing.position.z;
-    nearestRacing = Math.hypot(dx, dz) <= racing.radius ? racing : null;
-    racing.hovered = !!nearestRacing;
-    racing.terminal.update(time, dt, { hovered: racing.hovered, discovered: false });
-    racing.marker.update(time, dt, false);
-  }
-
   nearestOrb = null;
   let bestOrbDist = Infinity;
   for (const orb of worldData.collectibles.orbs) {
@@ -190,9 +169,6 @@ function animate() {
     if (isTouch && touchEls.interactBtn) touchEls.interactBtn.hidden = false;
   } else if (nearestArcade && !hud.panelOpen) {
     hud.showPrompt(isTouch ? nearestArcade.prompt : `[ E ] ${nearestArcade.prompt}`);
-    if (isTouch && touchEls.interactBtn) touchEls.interactBtn.hidden = false;
-  } else if (nearestRacing && !hud.panelOpen) {
-    hud.showPrompt(isTouch ? nearestRacing.prompt : `[ E ] ${nearestRacing.prompt}`);
     if (isTouch && touchEls.interactBtn) touchEls.interactBtn.hidden = false;
   } else if (nearestOrb && !hud.panelOpen) {
     hud.showPrompt(isTouch ? "Collect" : "[ E ] Collect Orb");
