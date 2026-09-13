@@ -88,7 +88,7 @@ export class PeerLobby extends EventTarget {
       throw new Error("PeerJS failed to load — multiplayer is unavailable.");
     }
     this.isHost = false;
-    this.code = code.toUpperCase().trim();
+    this.code = code.trim();
     this.peer = new window.Peer({ debug: 0 });
 
     return new Promise((resolve, reject) => {
