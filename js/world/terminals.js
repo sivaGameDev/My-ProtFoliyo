@@ -183,12 +183,76 @@ function buildArcadeTerminal() {
   return { group, interactive: [post, cap, button], pulse: [trim] };
 }
 
+// A checkered-flag canvas texture for the racing terminal's small pennant —
+// same technique as the glow sprites in markers.js, just a flat grid instead
+// of a radial gradient.
+function createCheckerTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 64;
+  canvas.height = 48;
+  const ctx = canvas.getContext("2d");
+  const cols = 8;
+  const rows = 6;
+  const cw = canvas.width / cols;
+  const ch = canvas.height / rows;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      ctx.fillStyle = (r + c) % 2 === 0 ? "#f5f5f5" : "#101010";
+      ctx.fillRect(c * cw, r * ch, cw, ch);
+    }
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.magFilter = THREE.NearestFilter;
+  return texture;
+}
+
+// A small checkered-flag pedestal marking the entrance to the racing arena —
+// same pole-and-marker scale as the other bonus attraction (the arcade call
+// button), just themed for racing.
+function buildRacingTerminal() {
+  const group = new THREE.Group();
+  const metal = createMetalMaterial({ color: 0x9a8a86, roughness: 0.4 });
+  const trim = createEmissiveTrimMaterial({ color: 0xff5240, intensity: 1.4 });
+
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.17, 1.7, 8), metal);
+  post.position.y = 0.85;
+  group.add(post);
+
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.17, 0.06, 8), metal);
+  cap.position.y = 1.73;
+  group.add(cap);
+
+  const flagPole = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.7, 6), metal);
+  flagPole.position.set(0, 2.05, -0.02);
+  group.add(flagPole);
+
+  const flag = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.6, 0.42),
+    new THREE.MeshStandardMaterial({ map: createCheckerTexture(), side: THREE.DoubleSide, emissive: 0x222222, emissiveIntensity: 0.3 })
+  );
+  flag.position.set(0.32, 2.2, -0.02);
+  group.add(flag);
+
+  const trimBand = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.02, 8, 24), trim);
+  trimBand.rotation.x = Math.PI / 2;
+  trimBand.position.y = 1.1;
+  group.add(trimBand);
+
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.02, 8, 24), trim);
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = 0.05;
+  group.add(ring);
+
+  return { group, interactive: [post, cap, flag], pulse: [trim] };
+}
+
 const BUILDERS = {
   about: buildAboutTerminal,
   projects: () => buildProjectsTerminal(5),
   resume: buildResumeTerminal,
   contact: buildContactTerminal,
   arcade: buildArcadeTerminal,
+  racing: buildRacingTerminal,
 };
 
 export function createTerminal(id) {
