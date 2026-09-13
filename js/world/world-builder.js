@@ -4,6 +4,7 @@ import { createTerminal } from "./terminals.js";
 import { createWaypointMarker } from "./markers.js";
 import { buildCollectibles } from "./collectibles.js";
 import { createScoreboard } from "./multiplayer/scoreboard.js";
+import { createRacingBoard } from "./multiplayer/racing-board.js";
 import { MILESTONES } from "./content-data.js";
 
 const PLATFORM_RADIUS = 16;
@@ -25,11 +26,23 @@ const TERMINAL_POSITIONS = [
 const ARCADE_POSITION = { x: -3.4, z: 13.6 };
 const ARCADE_COLOR = 0xf472b6;
 
+// The racing arena sits in the open NW quadrant, between About Me and
+// Experience & Education — another bonus attraction like the arcade, not
+// part of the core 4-milestone set.
+const RACING_POSITION = { x: -5.5, z: -9.5 };
+const RACING_COLOR = 0xff5240;
+
 // The live scoreboard hangs past the platform's outer rim, out in open
 // space, along the same direction as the arcade button — the last thing
 // past the outermost ring, visible from across the station.
 function scoreboardPosition() {
   const angle = Math.atan2(ARCADE_POSITION.z, ARCADE_POSITION.x);
+  const radius = PLATFORM_RADIUS + 4;
+  return { x: Math.cos(angle) * radius, y: 4, z: Math.sin(angle) * radius };
+}
+
+function racingBoardPosition() {
+  const angle = Math.atan2(RACING_POSITION.z, RACING_POSITION.x);
   const radius = PLATFORM_RADIUS + 4;
   return { x: Math.cos(angle) * radius, y: 4, z: Math.sin(angle) * radius };
 }
@@ -98,6 +111,7 @@ function buildLandingPads(group) {
     buildLandingPad(group, TERMINAL_POSITIONS[i], data.accentColor);
   });
   buildLandingPad(group, ARCADE_POSITION, ARCADE_COLOR);
+  buildLandingPad(group, RACING_POSITION, RACING_COLOR);
 }
 
 function createStrip(from, to, { width = 0.6, color = 0x5eead4, y = 0.02 } = {}) {
@@ -132,6 +146,7 @@ function buildWalkways(group) {
     group.add(createStrip(hub, pos, { color: MILESTONES[i].accentColor }));
   });
   group.add(createStrip(hub, ARCADE_POSITION, { color: ARCADE_COLOR, width: 0.5 }));
+  group.add(createStrip(hub, RACING_POSITION, { color: RACING_COLOR, width: 0.5 }));
 }
 
 // The plaza centerpiece — an emissive core with a translucent shell, a
@@ -223,6 +238,31 @@ function buildArcade(group) {
   };
 }
 
+// Another bonus attraction, not one of the 4 core milestones — visiting it
+// never affects the victory count.
+function buildRacing(group) {
+  const terminal = createTerminal("racing");
+  terminal.group.position.set(RACING_POSITION.x, 0, RACING_POSITION.z);
+  group.add(terminal.group);
+
+  const marker = createWaypointMarker({ color: RACING_COLOR });
+  terminal.group.add(marker.sprite);
+
+  return {
+    id: "racing",
+    label: "Racing Arena",
+    prompt: "Enter Racing Arena",
+    title: "Racing Arena — Multiplayer Circuit",
+    accentColor: RACING_COLOR,
+    position: new THREE.Vector3(RACING_POSITION.x, 0, RACING_POSITION.z),
+    radius: 3.4,
+    terminal,
+    marker,
+    discovered: false,
+    hovered: false,
+  };
+}
+
 // Crates, pylons, and drifting debris scattered along the walkways and
 // around the platform edge for atmosphere.
 const PROP_LAYOUT = [
@@ -301,6 +341,7 @@ export function buildWorld(scene) {
   const energyCore = buildEnergyCore(group);
   const milestones = buildTerminals(group);
   const arcade = buildArcade(group);
+  const racing = buildRacing(group);
   const propColliders = buildProps(group);
   const collectibles = buildCollectibles(group);
 
@@ -309,24 +350,27 @@ export function buildWorld(scene) {
   scene.add(dust);
 
   scene.add(createScoreboard(scoreboardPosition()));
+  scene.add(createRacingBoard(racingBoardPosition()));
 
   scene.add(group);
 
   const terminalColliders = milestones.map((m) => ({ x: m.position.x, z: m.position.z, radius: 1.5 }));
   const arcadeCollider = { x: arcade.position.x, z: arcade.position.z, radius: 1.2 };
+  const racingCollider = { x: racing.position.x, z: racing.position.z, radius: 1.2 };
   const coreCollider = { x: 0, z: 0, radius: 1.0 };
 
   return {
     group,
     milestones,
     arcade,
+    racing,
     collectibles,
     dust,
     core: energyCore.core,
     coreMesh: energyCore.coreMesh,
     wire: energyCore.wire,
     particles: energyCore.particles,
-    colliders: [coreCollider, arcadeCollider, ...terminalColliders, ...propColliders],
+    colliders: [coreCollider, arcadeCollider, racingCollider, ...terminalColliders, ...propColliders],
     worldBounds: PLATFORM_RADIUS - 1.5,
   };
 }

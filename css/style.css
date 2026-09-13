@@ -810,6 +810,57 @@ button {
   margin-top: 0;
 }
 
+/* ---------- Racing Arena ---------- */
+.race-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.race-canvas-box {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #05070d;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.race-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  outline: none;
+}
+
+.race-canvas:focus {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.race-hud {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.race-hud-speed {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.race-status {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--accent);
+  min-height: 1.2em;
+}
+
 /* ---------- Victory overlay ---------- */
 .victory-overlay {
   position: fixed;
