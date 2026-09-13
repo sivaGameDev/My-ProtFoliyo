@@ -95,11 +95,19 @@ export function createScoreboard(position) {
   group.position.set(position.x, position.y, position.z);
   group.lookAt(0, position.y, 0);
 
+  // Scaled up 70% from its original size so the board reads clearly from
+  // across the station — kept as its own inner group so the outer group's
+  // position/lookAt stays a clean, unscaled transform.
+  const BOARD_SCALE = 1.7;
+  const visuals = new THREE.Group();
+  visuals.scale.setScalar(BOARD_SCALE);
+  group.add(visuals);
+
   const screen = new THREE.Mesh(
     new THREE.PlaneGeometry(2.6, 2.6),
     new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, toneMapped: false })
   );
-  group.add(screen);
+  visuals.add(screen);
 
   const frame = new THREE.Mesh(
     new THREE.RingGeometry(1.8, 1.86, 4),
@@ -107,11 +115,11 @@ export function createScoreboard(position) {
   );
   frame.scale.set(1.02, 1.02, 1);
   frame.position.z = -0.01;
-  group.add(frame);
+  visuals.add(frame);
 
-  const glow = new THREE.PointLight(0xf472b6, 1.2, 6, 2);
+  const glow = new THREE.PointLight(0xf472b6, 1.2, 6 * BOARD_SCALE, 2);
   glow.position.z = 0.5;
-  group.add(glow);
+  visuals.add(glow);
 
   arcadeSession.subscribe((snapshot) => {
     drawBoard(ctx, snapshot);

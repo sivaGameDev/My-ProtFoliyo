@@ -211,6 +211,10 @@ export function createHud({ controller, isTouch }) {
 
   els.enterBtn.addEventListener("click", enterExperience);
 
+  els.playerNameInput.addEventListener("input", () => {
+    els.enterBtn.disabled = !els.playerNameInput.value.trim();
+  });
+
   if (isTouch) {
     els.introNote.style.display = "block";
   } else {

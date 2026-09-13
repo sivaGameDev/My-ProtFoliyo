@@ -23,6 +23,17 @@ function normalizeKeyToken(e) {
   return KEY_MAP[key] || e.key || "";
 }
 
+// While the player is typing into a text field (the name input on the intro
+// screen), letters like W/A/S/D must stay plain text, not leak into the
+// movement key state — this becomes a no-op again the moment focus moves
+// away (e.g. once "Board The Station" is clicked and loading begins).
+function isTypingIntoField() {
+  const el = document.activeElement;
+  if (!el) return false;
+  const tag = el.tagName;
+  return tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable;
+}
+
 const EYE_HEIGHT = 1.7;
 const PLAYER_RADIUS = 0.4;
 const WALK_SPEED = 4.2;
@@ -64,6 +75,7 @@ export class PlayerController {
 
   _bindKeyboard() {
     window.addEventListener("keydown", (e) => {
+      if (isTypingIntoField()) return;
       const token = normalizeKeyToken(e);
       this.keys.add(token);
       if (token === "ShiftLeft") this.running = true;
@@ -71,6 +83,7 @@ export class PlayerController {
       if (token === "Space") this._tryJump();
     });
     window.addEventListener("keyup", (e) => {
+      if (isTypingIntoField()) return;
       const token = normalizeKeyToken(e);
       this.keys.delete(token);
       if (token === "ShiftLeft") this.running = false;
