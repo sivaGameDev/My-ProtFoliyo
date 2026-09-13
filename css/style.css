@@ -853,6 +853,11 @@ button {
   font-weight: 600;
 }
 
+.race-hud-lap {
+  color: var(--text);
+  font-weight: 600;
+}
+
 .race-status {
   text-align: center;
   font-family: var(--font-mono);

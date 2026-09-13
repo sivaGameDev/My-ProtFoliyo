@@ -13,30 +13,34 @@ import { arcadeSession } from "./arcade-session.js";
 const TRACK_WIDTH = 3.4;
 const TRACK_SAMPLES = 240;
 
-// A winding circuit — long straights, a sweeping right-hander, an S-chicane,
-// and a tight hairpin — rather than a plain oval. Hand-placed waypoints fed
-// through a closed Catmull-Rom spline, same idea as a real track map.
+// Modeled on the reference track map: a long pit/start straight down the
+// left side, sweeping into an S-chicane across the top, then a tight
+// hook-shaped run of turns on the right before a straight run back along
+// the bottom. Hand-placed waypoints fed through a closed Catmull-Rom
+// spline, same idea as a real track map. Waypoint 0 is the start/finish —
+// the car spawns here, facing waypoint 1, and it's where the checkered
+// line is planted.
 const TRACK_WAYPOINTS = [
-  { x: -2, z: 9 },
-  { x: 4, z: 9 },
-  { x: 8, z: 6 },
-  { x: 8, z: 2 },
-  { x: 5, z: 0 },
-  { x: 8, z: -2 },
-  { x: 8, z: -6 },
-  { x: 5, z: -9 },
-  { x: 1, z: -7 },
-  { x: -3, z: -9 },
-  { x: -8, z: -6 },
-  { x: -8, z: -1 },
-  { x: -6, z: 3 },
-  { x: -5, z: 7 },
+  { x: -8, z: -7 }, // 0: start/finish — bottom of the pit straight
+  { x: -8, z: 7 }, // 1: top of the pit straight
+  { x: -4, z: 9 }, // 2: sweep right
+  { x: 2, z: 8 }, // 3: into the top chicane
+  { x: 5, z: 5 }, // 4: chicane kink 1
+  { x: 2, z: 2 }, // 5: chicane kink 2
+  { x: 6, z: 0 }, // 6: heading into the right-side hook
+  { x: 9, z: 2 }, // 7: hook outer bend
+  { x: 9, z: -3 }, // 8: hook continues down
+  { x: 6, z: -5 }, // 9: hook tightens
+  { x: 8, z: -8 }, // 10: hook bottom
+  { x: 4, z: -9 }, // 11: exit the hook
+  { x: -2, z: -9 }, // 12: bottom straight
+  { x: -6, z: -8 }, // 13: curve back to the start
 ];
 
 // Waypoint indices that mark a turn — small apex marker blocks get planted
 // just outside the track edge there, echoing the curve-marker convention
-// from real track diagrams.
-const MARKER_INDICES = [2, 4, 5, 7, 10];
+// from the reference track map.
+const MARKER_INDICES = [2, 4, 5, 9, 11];
 
 const ACCEL = 5.5;
 const MAX_SPEED = 8.5;
@@ -82,6 +86,62 @@ function buildStripGeometry(pts, width, y = 0) {
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
   return geometry;
+}
+
+function createCheckerTexture(cols, rows) {
+  const canvas = document.createElement("canvas");
+  canvas.width = cols * 8;
+  canvas.height = rows * 8;
+  const ctx = canvas.getContext("2d");
+  const cw = canvas.width / cols;
+  const ch = canvas.height / rows;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      ctx.fillStyle = (r + c) % 2 === 0 ? "#ffffff" : "#101010";
+      ctx.fillRect(c * cw, r * ch, cw, ch);
+    }
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.magFilter = THREE.NearestFilter;
+  return texture;
+}
+
+// The checkered start/finish line, planted across the road at the lap's
+// zero point — same forward/perpendicular basis as the road ribbon, so it
+// always sits flush with the track regardless of the local curve direction.
+function buildStartLine(startPoint, nextPoint) {
+  const dirX = nextPoint.x - startPoint.x;
+  const dirZ = nextPoint.z - startPoint.z;
+  const len = Math.hypot(dirX, dirZ) || 1;
+  const ux = dirX / len;
+  const uz = dirZ / len;
+  const nx = -uz;
+  const nz = ux;
+  const halfW = TRACK_WIDTH / 2;
+  const halfD = 0.4;
+
+  const positions = [
+    startPoint.x - ux * halfD + nx * halfW, 0.04, startPoint.z - uz * halfD + nz * halfW,
+    startPoint.x - ux * halfD - nx * halfW, 0.04, startPoint.z - uz * halfD - nz * halfW,
+    startPoint.x + ux * halfD + nx * halfW, 0.04, startPoint.z + uz * halfD + nz * halfW,
+    startPoint.x + ux * halfD - nx * halfW, 0.04, startPoint.z + uz * halfD - nz * halfW,
+  ];
+  const uvs = [0, 0, 1, 0, 0, 1, 1, 1];
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+  geometry.setIndex([0, 2, 1, 1, 2, 3]);
+  geometry.computeVertexNormals();
+
+  const texture = createCheckerTexture(8, 1);
+  const material = new THREE.MeshStandardMaterial({
+    map: texture,
+    emissive: 0xffffff,
+    emissiveMap: texture,
+    emissiveIntensity: 0.35,
+    side: THREE.DoubleSide,
+  });
+  return new THREE.Mesh(geometry, material);
 }
 
 function buildCurveMarkers(waypoints, indices, material) {
@@ -142,6 +202,8 @@ function buildTrack() {
 
   const markerMat = createEmissiveTrimMaterial({ color: 0xeceff1, intensity: 1.6 });
   group.add(buildCurveMarkers(TRACK_WAYPOINTS, MARKER_INDICES, markerMat));
+
+  group.add(buildStartLine(centerPoints[0], centerPoints[1]));
 
   const floor = new THREE.Mesh(new THREE.CircleGeometry(14, 32), new THREE.MeshStandardMaterial({ color: 0x0b0f19, roughness: 1 }));
   floor.rotation.x = -Math.PI / 2;
@@ -211,6 +273,7 @@ export function mountRacing(container) {
       <div class="race-canvas-box"><canvas class="race-canvas"></canvas></div>
       <div class="race-hud">
         <span class="race-hud-speed" id="raceSpeed">0 KM/H</span>
+        <span class="race-hud-lap" id="raceLap">Lap 0</span>
         <span class="race-hud-drivers" id="raceDrivers"></span>
       </div>
       <p class="race-status" id="raceStatus">Connecting to the racing arena…</p>
@@ -220,6 +283,7 @@ export function mountRacing(container) {
   const canvas = container.querySelector(".race-canvas");
   const box = container.querySelector(".race-canvas-box");
   const speedEl = container.querySelector("#raceSpeed");
+  const lapEl = container.querySelector("#raceLap");
   const driversEl = container.querySelector("#raceDrivers");
   const statusEl = container.querySelector("#raceStatus");
 
@@ -345,23 +409,37 @@ export function mountRacing(container) {
     },
   });
 
-  // Nearest point on the track's sampled centerline — used to keep the car
-  // on the road regardless of how the path curves, instead of a simple
-  // radial distance check.
+  // Nearest point on the track's sampled centerline — used both to keep the
+  // car on the road regardless of how the path curves (instead of a simple
+  // radial distance check), and to detect lap completion (below).
   function nearestCenterPoint(x, z) {
     let bestDistSq = Infinity;
     let bestPoint = centerPoints[0];
-    for (const p of centerPoints) {
+    let bestIndex = 0;
+    for (let i = 0; i < centerPoints.length; i++) {
+      const p = centerPoints[i];
       const dx = x - p.x;
       const dz = z - p.z;
       const distSq = dx * dx + dz * dz;
       if (distSq < bestDistSq) {
         bestDistSq = distSq;
         bestPoint = p;
+        bestIndex = i;
       }
     }
-    return { point: bestPoint, dist: Math.sqrt(bestDistSq) };
+    return { point: bestPoint, dist: Math.sqrt(bestDistSq), index: bestIndex };
   }
+
+  // Lap counting: the checkered line sits at centerline index 0. A lap
+  // completes when the car's nearest-centerline index wraps from near the
+  // end of the loop back to near the start — `hasLeftStart` guards against
+  // counting a lap immediately on spawn or from small back-and-forth
+  // jitter right at the line.
+  let lapCount = 0;
+  let hasLeftStart = false;
+  let lastLapIndex = 0;
+  const lapStartZone = Math.floor(centerPoints.length * 0.12);
+  const lapEndZone = Math.floor(centerPoints.length * 0.88);
 
   let raf = null;
   let disposed = false;
@@ -397,7 +475,7 @@ export function mountRacing(container) {
     // Keep the car on the road — soft clamp back toward the nearest point on
     // the track's centerline if it strays past the road's edge, and bleed
     // off some speed so straying off-line actually costs something.
-    const { point, dist } = nearestCenterPoint(carState.x, carState.z);
+    const { point, dist, index } = nearestCenterPoint(carState.x, carState.z);
     const maxDist = TRACK_WIDTH / 2 - 0.3;
     if (dist > maxDist) {
       const dx = carState.x - point.x;
@@ -407,6 +485,14 @@ export function mountRacing(container) {
       carState.z = point.z + (dz / len) * maxDist;
       carState.speed *= 0.6;
     }
+
+    if (index > lapStartZone) hasLeftStart = true;
+    if (hasLeftStart && lastLapIndex > lapEndZone && index < lapStartZone) {
+      lapCount += 1;
+      hasLeftStart = false;
+      lapEl.textContent = `Lap ${lapCount}`;
+    }
+    lastLapIndex = index;
 
     car.position.set(carState.x, 0, carState.z);
     car.rotation.y = carState.heading;
